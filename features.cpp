@@ -22,7 +22,7 @@ void soundFeatures::setData(double *data, long n, int window, int samp){
 map<char, vector<double> > soundFeatures::calcFeatures(string featString, int windowStart, int windowLength){
     double mean, dev, zcr, hzcrr, kurtosis, skewness, variance, RMS, sharp, lpcc_order, loud;
     double s_var ,s_mean, s_dev, s_kur, s_skew, s_centroid;
-    double spectrum[windowLength], autoCorr[windowLength+1], lpc[20], lpcc[15], mfcc[10], barkC[25];
+    double spectrum[windowLength], autoCorr[windowLength+1], lpc[20], lpcc[15], mfcc[40], barkC[25];
     int bark[26];
 
     xtract_mel_filter mfccBank;
@@ -135,11 +135,11 @@ map<char, vector<double> > soundFeatures::calcFeatures(string featString, int wi
             break;
             case 'n':
                 xtract[XTRACT_AUTOCORRELATION](wavData + windowStart, windowLength, NULL, autoCorr);
-                xtract[XTRACT_LPC](autoCorr, 11, NULL, lpc);
+                xtract[XTRACT_LPC](autoCorr, 20, NULL, lpc);
                 //lpcc_order = 15;
                 //xtract[XTRACT_LPCC](lpc + 10, 10, &lpcc_order, lpcc);
                 //result['n'] = vector<double>(lpcc, lpcc + (int)lpcc_order);
-                result['n'] = vector<double>(lpc+10, lpc + 20);
+                result['n'] = vector<double>(lpc+20, lpc + 40);
             break;
             case 'o':
                 if (!calcFeat["spectrum"]){
@@ -151,20 +151,20 @@ map<char, vector<double> > soundFeatures::calcFeatures(string featString, int wi
                 calcFeat["spectrum"] = true;
                 }
 
-                mfccBank.n_filters = 10;
-                mfccBank.filters = (double **)malloc(10 * sizeof(double *));
-                for(int i = 0; i < 10; i++)
+                mfccBank.n_filters = 40;
+                mfccBank.filters = (double **)malloc(40 * sizeof(double *));
+                for(int i = 0; i < 40; i++)
                     mfccBank.filters[i] = (double *)malloc(windowLength * sizeof(double));
 
                 xtract_init_mfcc(windowLength/2, samplerate/2, XTRACT_EQUAL_GAIN, 20, samplerate/2, mfccBank.n_filters, mfccBank.filters);
 
                 xtract[XTRACT_MFCC](spectrum, windowLength/2, &mfccBank, mfcc);
 
-                for(int i = 0; i < 10; ++i)
+                for(int i = 0; i < 40; ++i)
                     free(mfccBank.filters[i]);
                 free(mfccBank.filters);
 
-                result['o'] = vector<double>(mfcc, mfcc + 10);
+                result['o'] = vector<double>(mfcc, mfcc + 40);
             break;
             case 'p':
                 if (!calcFeat["bark"]){
